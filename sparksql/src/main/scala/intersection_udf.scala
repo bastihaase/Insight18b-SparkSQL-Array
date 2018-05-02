@@ -1,23 +1,23 @@
-package UDF_Intersection
+package Intersection
 import org.apache.spark.sql.{DataFrame, SparkSession}
 // For implicit conversions like converting RDDs to DataFrames
 
 
 
 
-object SparkUDFIntersect {
+object SparkIntersect {
+
+  /** Main spark job that saves data to MySQL, expects one command line argument
+    *
+    *  @param args(0) name of input file to be processed
+    *
+    */
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder()
-      .appName("Spark SQL Intersection with UDF")
+      .appName("Spark SQL to MySQL job")
       .getOrCreate()
     import spark.implicits._
-
-
-    // Define UDF that intersects two sequences of strings in a nullsafe way
-    spark.udf.register("INTERSECTION",
-      (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq())
-
 
 
     // Creates a DataFrame from json file
@@ -31,7 +31,7 @@ object SparkUDFIntersect {
 
     // Select the asin (product_id) and intersection of
     // what was bought and what was looked at
-    val query = "SELECT asin, SUBSTRING(description, 0, 20) description, price, SIZE(INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM meta_view"
+    val query = "SELECT asin, SUBSTRING(description, 0, 20) description, price, SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM meta_view"
     val new_df = spark.sql(query)
 
     // Save to MySQL database
@@ -39,11 +39,17 @@ object SparkUDFIntersect {
 
   }
 
+
+  /** Helper function that saves dataframe to MySQL database
+    *
+    *  @param df dataframe to be saved
+    *
+    */
   def save_to_mysql(df: DataFrame): Unit = {
 
     //create properties object
     val prop = new java.util.Properties
-    prop.setProperty("driver", "com.mysql.jdbc.Driver")  
+    prop.setProperty("driver", "com.mysql.jdbc.Driver")
 
     prop.setProperty("user", "xxxxx")
     prop.setProperty("password", "xxxxxxx")
@@ -58,7 +64,3 @@ object SparkUDFIntersect {
 
   }
 }
-
-
-
-
