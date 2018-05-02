@@ -93,7 +93,7 @@ The main challenges encountered in this project were:
 - Understand how SparkSQL works internally
 - SparkSQL uses a tree of expressions to parse SQL commands to Spark jobs
 - The catalyst component compiles SQL commands to JVM bytecode based on these rules
-- There is no good documentation for this, so I dove deep into the source code
+- There is no detailed documentation for this, so I dove deep into the source code
 - Specifically, I chose specific SQL commands and analyzed how they were parsed
 - Setting up a fully functioning data pipeline was a secondary engineering challenge
 
