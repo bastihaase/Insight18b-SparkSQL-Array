@@ -1,21 +1,42 @@
 package Performance_Tests
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.log4j.BasicConfigurator
-// For implicit conversions like converting RDDs to DataFrames
 
 
+
+
+/** Defines a SparkSQL job that compares performance of
+  * using UDFs to compute intersections of arrays and
+  * using an internal implementation
+  * Requires custom Spark distro available at https://github.com/bastihaase/spark
+  */
 object SparkSQL_Performance {
+
+
+  /** Main spark job, expects two command line arguments
+    *
+    *  @param args(0) name of input file to be processed
+    *  @param args(1) string indicating whether to test UDF or internal version
+    *                 use "UDF" for UDF and "internal" for internal
+    */
   def main(args: Array[String]) {
+
+    // Start Spark session
     val spark = SparkSession
       .builder()
       .appName("Spark SQL Performance tests")
       .getOrCreate()
+
+    // For implicit conversions like converting RDDs to DataFrames
     import spark.implicits._
 
+    // Configure log4j to display log messages to console
     BasicConfigurator.configure()
 
 
+
     if (args.length >= 2) {
+
       // Define UDF that intersects two sequences of strings in a nullsafe way
       spark.udf.register("UDF_INTERSECTION",
         (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq())
@@ -56,12 +77,3 @@ object SparkSQL_Performance {
 
 
 }
-
-
-
-
-
-
-
-
-
