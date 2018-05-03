@@ -1,5 +1,7 @@
 from flask import Flask
 from flaskext.mysql import MySQL
+from flask import render_template
+import math
 import pandas as pd
 from itertools import chain, cycle, izip
 
@@ -9,30 +11,34 @@ app = Flask(__name__)
 # set up connection with MySQL database
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'basti'
-app.config['MYSQL_DATABASE_PASSWORD'] = '*********'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'metadata'
 app.config['MYSQL_DATABASE_DB'] = 'processed'
-app.config['MYSQL_DATABASE_HOST'] = '**********'
+app.config['MYSQL_DATABASE_HOST'] = '35.160.106.92'
 mysql.init_app(app)
 
-# this makes sure our output will be printed correctly
-@app.after_request
-def treat_as_plain_text(response):
-    response.headers["content-type"] = "text/plain"
-    return response
 
-# retrieve stats from mysql database and return results
+
+
 @app.route("/")
 def stats():
+    # retrieve stats from mysql database and return results
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    query = "SELECT  overlap, COUNT(*) occurences FROM metadata GROUP BY overlap"
-    df = pd.read_sql(query, con=conn)
+    query = "SELECT  overlap, COUNT(*) occurences FROM output GROUP BY overlap"
+    data = pd.read_sql(query, con=conn).values.tolist()
 
-    output = "Amazon Purchase Data: How effective are recommendations? \n"
-    output += "overlap = how many of the recommended items were also bought? \n"
-    output += df.to_String(index=False)
-    return output
+    # rearrange data for bar plot
+    legend = 'Bought and Shown'
+    labels = [x[0] for x in data]
+    values = [x[1] for x in data]
+    maximum = max(values)
+    values = [math.ceil(100 * x / float(maximum)) for x in values]
+
+
+    #return the bar plot
+    return render_template('chart.html', values=values, labels=labels, legend=legend)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=80)
