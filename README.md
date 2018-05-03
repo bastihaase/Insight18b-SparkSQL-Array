@@ -106,13 +106,15 @@ The main challenges encountered in this project were:
  When testing for performance, I excluded all external bottlenecks such as storing the
  results in the MySQL database.
 
- Results:
+ Results
 
- I will be a nice column graph
+ I will be a nice graph
 
  ### Amazon Purchase data statistics
 
  Using my internal functions, I was able to analyze how effective Amazon's prediction is.
  Here is the output of my Flask app:
 
-I will be a picture of my app.
+![image](images/app.png "Tech-stack")
+
+We can see that the vast majority of buyers do not buy other items suggested by Amazon.
