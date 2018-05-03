@@ -11,17 +11,24 @@ This repo contains the code that was used to build the pipeline and do the perfo
 
 ## Internal modifications
 
-I added internal functions in SparkSQL to compute intersections of arrays.
+I added internal functions in SparkSQL to compute
+intersections and exclusions of arrays.
 Example:
+If col1 and col2 contain arrays of the same type, then
 
     SELECT ARRAY_INTERSECT(col1, col2) FROM TABLE
 
-if col1 and col2 contain arrays of the same type. Thorough unit testing is
+will return a column of arrays that contain the common elements of
+the input arrays. Thorough unit testing is
 provided and specific methods for arrays of type int, byte and long are
 included to improve performance.
 
+Most of my additions are part of the catalyst module of SparkSQL.
+Essentially, catalyst decomposes SparkSQL statements as trees, optimizes
+the execution plan and ultimately produces JVM bytecode.
 
-Based on modifications and suggestions given in [Kiszk' Spark.](https://github.com/kiszk/spark)
+
+My modifications are based on the branch of [Kiszk' Spark.](https://github.com/kiszk/spark).
 
 ## Use-case
 
