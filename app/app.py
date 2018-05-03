@@ -11,9 +11,9 @@ app = Flask(__name__)
 # set up connection with MySQL database
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'basti'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'metadata'
+app.config['MYSQL_DATABASE_PASSWORD'] = '**********'
 app.config['MYSQL_DATABASE_DB'] = 'processed'
-app.config['MYSQL_DATABASE_HOST'] = '35.160.106.92'
+app.config['MYSQL_DATABASE_HOST'] = '**********'
 mysql.init_app(app)
 
 
