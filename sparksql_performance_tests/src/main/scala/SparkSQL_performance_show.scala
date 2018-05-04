@@ -8,7 +8,7 @@ import org.apache.spark.sql.SparkSession
   * using an internal implementation
   * Requires custom Spark distro available at https://github.com/bastihaase/spark
   */
-object SparkSQL_Performance_Group_By {
+object SparkSQL_Performance_Show {
 
 
   /** Main spark job, expects two command line arguments
@@ -53,16 +53,16 @@ object SparkSQL_Performance_Group_By {
 
 
       if (args(1) == "UDF") {
-        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+        query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
       } else {
-        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+        query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
 
       }
 
       val new_df = spark.sql(query)
 
       // To force evaluation
-      new_df.rdd.count
+      new_df.show
 
     } else
       {

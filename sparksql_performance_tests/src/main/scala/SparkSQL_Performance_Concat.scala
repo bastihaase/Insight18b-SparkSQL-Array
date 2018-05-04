@@ -8,7 +8,7 @@ import org.apache.spark.sql.SparkSession
   * using an internal implementation
   * Requires custom Spark distro available at https://github.com/bastihaase/spark
   */
-object SparkSQL_Performance_Group_By {
+object SparkSQL_Performance_Concat {
 
 
   /** Main spark job, expects two command line arguments
@@ -35,8 +35,8 @@ object SparkSQL_Performance_Group_By {
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
-      spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq())
+      spark.udf.register("UDF_CONCAT",
+        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1 ++ arr2 else Seq())
 
 
       // Creates a DataFrame from json file
@@ -53,9 +53,9 @@ object SparkSQL_Performance_Group_By {
 
 
       if (args(1) == "UDF") {
-        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+        query = "SELECT UDF_CONCAT(related.buy_after_viewing, related.also_viewed) FROM meta_view"
       } else {
-        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+        query = "SELECT CONCAT(related.buy_after_viewing, related.also_viewed) FROM meta_view"
 
       }
 
