@@ -1,8 +1,9 @@
-# Array modifications in SparkSQL
+# SparkSQL in Trouble: Array modifications
 
 
 ## Description
-I implemented array modifications internally with SparkSQL and compared performance to UDFs.
+I implemented array modifications internally within SparkSQL and compared performance to
+user-defined-functions (UDFs).
 See here for my modified Spark Distro: [modified-Spark](https://github.com/bastihaase/spark).
 I also implemented a pipeline analyzing Amazon purchase data to test the pipeline.
 
@@ -11,6 +12,8 @@ This repo contains the code that was used to build the pipeline and do the perfo
 
 ## Internal modifications
 
+Currently, SparkSQL does not offer many features regarding
+the transformation of columns of arrays.
 I added internal functions in SparkSQL to compute
 intersections and exclusions of arrays.
 Example:
