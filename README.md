@@ -113,9 +113,10 @@ The main challenges encountered in this project were:
  When testing for performance, I excluded all external bottlenecks such as storing the
  results in the MySQL database.
 
- Results
+ Results for an isolated usage of
+     ARRAY_INTERSECTION
 
- I will be a nice graph
+![image](images/results.png)
 
  ### Amazon Purchase data statistics
 
