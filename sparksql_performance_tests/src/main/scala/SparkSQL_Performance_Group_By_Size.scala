@@ -1,8 +1,6 @@
-package Performance_Tests
-import org.apache.spark.sql.{DataFrame, SparkSession}
+package Performance_Group_By
 import org.apache.log4j.BasicConfigurator
-
-
+import org.apache.spark.sql.SparkSession
 
 
 /** Defines a SparkSQL job that compares performance of
@@ -10,7 +8,7 @@ import org.apache.log4j.BasicConfigurator
   * using an internal implementation
   * Requires custom Spark distro available at https://github.com/bastihaase/spark
   */
-object SparkSQL_Performance {
+object SparkSQL_Performance_Group_By {
 
 
   /** Main spark job, expects two command line arguments
@@ -28,7 +26,6 @@ object SparkSQL_Performance {
       .getOrCreate()
 
     // For implicit conversions like converting RDDs to DataFrames
-    import spark.implicits._
 
     // Configure log4j to display log messages to console
     BasicConfigurator.configure()
@@ -56,9 +53,9 @@ object SparkSQL_Performance {
 
 
       if (args(1) == "UDF") {
-        query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
+        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
       } else {
-        query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
+        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
 
       }
 
