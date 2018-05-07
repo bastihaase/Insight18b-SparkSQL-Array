@@ -96,6 +96,11 @@ The dataflow can be described as follows:
 The dataset is based on Amazon purchase data. For performance testing,
 this dataset was used to create larger simulated files.
 
+The dataset was part of the work associated with the following papers:
+
+-  R. He, J. McAuley. Modeling the visual evolution of fashion trends with one-class collaborative filtering. WWW, 2016
+-  J. McAuley, C. Targett, J. Shi, A. van den Hengel. Image-based recommendations on styles and substitutes. SIGIR, 2015
+
 ## Engineering Challenges
 
 The main challenges encountered in this project were:
