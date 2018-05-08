@@ -9,7 +9,7 @@ object SparkIntersect {
 
   /** Main spark job that saves data to MySQL, expects one command line argument
     *
-    *  @param args(0) name of input file to be processed
+    *  @param args(0): String      name of input file to be processed
     *
     */
   def main(args: Array[String]) {
@@ -42,7 +42,7 @@ object SparkIntersect {
 
   /** Helper function that saves dataframe to MySQL database
     *
-    *  @param df dataframe to be saved
+    *  @param df: DataFrame   dataframe to be saved
     *
     */
   def save_to_mysql(df: DataFrame): Unit = {
