@@ -68,31 +68,17 @@ object Streaming {
           dataFrame.createOrReplaceTempView("table")
 
 
-          df_has(dataFrame, "asin") match {
-            case Success(_) => df_has (dataFrame, "related.also_viewed") match {
-              case Success(_) => df_has (dataFrame, "related.buy_after_viewing") match {
-                case Success(_) => save_to_mysql (spark.sql (success_query) )
-                case Failure(_) => save_to_mysql (spark.sql (failure_query) )
-              }
-              case Failure(_) => save_to_mysql (spark.sql (failure_query) )
-            }
-            case Failure(_) => println("No asin in dataframe!")
+          (df_has(dataFrame, "asin"), df_has(dataFrame, "related.also_viewed"), df_has(dataFrame, "related.buy_after_viewing")) match{
+            case (Success(_), Success(_), Success(_)) => save_to_mysql (spark.sql (success_query)
+            case (Success(_), _, _) => save_to_mysql(spark.sql(failure_query))
+            case _ => println("No asin database!")
           }
-
-
-
-
-
         })
 
 
 
       ssc.start()
       ssc.awaitTermination()
-
-
-
-
 
 
 
