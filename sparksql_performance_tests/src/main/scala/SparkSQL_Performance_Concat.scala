@@ -34,9 +34,9 @@ object SparkSQL_Performance_Concat {
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
-      spark.udf.register("UDF_INTERSECTION",
+      spark.udf.register("UDF_CONCAT",
         (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
-          case (Some(x), Some(y)) => x.intersect(y)
+          case (Some(x), Some(y)) => x ++ y
           case _ => Seq()
         })
 
