@@ -13,9 +13,8 @@ object SparkSQL_Performance_Group_By {
 
   /** Main spark job, expects two command line arguments
     *
-    *  @param args(0) name of input file to be processed
-    *  @param args(1) string indicating whether to test UDF or internal version
-    *                 use "UDF" for UDF and "internal" for internal
+    *  @param args expects two elements: 1) name of input file to be processed
+    *                                    2) UDF or internal depending on which mode should be used
     */
   def main(args: Array[String]) {
 
@@ -36,7 +35,10 @@ object SparkSQL_Performance_Group_By {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
       spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq())
+        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+          case (Some(x), Some(y)) => x.intersect(y)
+          case _ => Seq()
+        })
 
 
       // Creates a DataFrame from json file

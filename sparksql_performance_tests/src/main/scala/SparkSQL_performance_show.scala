@@ -13,9 +13,8 @@ object SparkSQL_Performance_Show {
 
   /** Main spark job, expects two command line arguments
     *
-    *  @param args(0) name of input file to be processed
-    *  @param args(1) string indicating whether to test UDF or internal version
-    *                 use "UDF" for UDF and "internal" for internal
+    *  @param args expects two elements: 1) name of input file to be processed
+    *                                    2) UDF or internal depending on which mode should be used
     */
   def main(args: Array[String]) {
 
