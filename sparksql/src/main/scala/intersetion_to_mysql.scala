@@ -17,6 +17,8 @@ object SparkIntersect {
       .builder()
       .appName("Spark SQL to MySQL job")
       .getOrCreate()
+
+    // For implicit conversions
     import spark.implicits._
 
 
