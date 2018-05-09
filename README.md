@@ -149,5 +149,3 @@ memory to not crash, but I have not investigated this in detail yet.
  Here is the output of my Flask app:
 
 ![image](images/app.png "UI")
-
-We can see that the vast majority of buyers do not buy other items suggested by Amazon.
