@@ -38,8 +38,11 @@ object SparkSQL_Performance {
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
-      spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq())
+      spark.udf.register("UDF_Intersection",
+        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+          case (Some(x), Some(y)) => x.intersect(y)
+          case _ => Seq()
+        })
 
 
       // Creates a DataFrame from json file
@@ -67,7 +70,7 @@ object SparkSQL_Performance {
 
     } else
       {
-        println("Missing arguments!")
+        println("Missing arguments! Do you want to use UDF or Internal mode?")
       }
 
 
