@@ -10,6 +10,8 @@ I also implemented a pipeline analyzing Amazon purchase data to test the pipelin
 
 This repo contains the code that was used to build the pipeline and do the performance testing.
 
+See here for my slides presenting this project: [Slides](https://bit.ly/Haase_slides)
+
 ## Internal modifications
 
 Currently, SparkSQL does not offer many features regarding
@@ -29,6 +31,8 @@ included to improve performance.
 Most of my additions are part of the catalyst module of SparkSQL.
 Essentially, catalyst decomposes SparkSQL statements as trees, optimizes
 the execution plan and ultimately produces JVM bytecode.
+So, I added expressions for array_intersection and array_exception that
+can be part of the trees and will generate efficient JVM code.
 
 
 My modifications are based on the branch of [Kiszk' Spark.](https://github.com/kiszk/spark).
@@ -90,6 +94,11 @@ The dataflow can be described as follows:
 
 ![image](images/tech.png "Tech-stack")
 
+I also implemented a streaming pipeline to test my additions in a streaming framework.
+I used Kafka for data ingestions. My streaming pipeline looks as follows:
+
+![image](images/streaming-tech.png "Streaming Tech Stack")
+
 
 ## Dataset
 
@@ -110,6 +119,8 @@ The main challenges encountered in this project were:
 - The catalyst component compiles SQL commands to JVM bytecode based on these rules
 - There is no detailed documentation for this, so I dove deep into the source code
 - Specifically, I chose specific SQL commands and analyzed how they were parsed
+- I had to make sure that the rules that will be applied to my expressions make sense for my use case
+- I also had to write the codeGen functions that produce the JVM bytecode via quasi-quotes
 - Setting up a fully functioning data pipeline was a secondary engineering challenge
 
 
@@ -123,14 +134,20 @@ The main challenges encountered in this project were:
 
  Results for an isolated usage of
      ARRAY_INTERSECTION
+ in a batch job.
+
 
 ![image](images/results.png)
+
+I have conducted more testing with more complicated queries. The results were similar to
+the isolated results. There were certain join queries were the UDF version needed more
+memory to not crash, but I have not investigated this in detail yet.
 
  ### Amazon Purchase data statistics
 
  Using my internal functions, I was able to analyze how effective Amazon's prediction is.
  Here is the output of my Flask app:
 
-![image](images/app.png "Tech-stack")
+![image](images/app.png "UI")
 
 We can see that the vast majority of buyers do not buy other items suggested by Amazon.
