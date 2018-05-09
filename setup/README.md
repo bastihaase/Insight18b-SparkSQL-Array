@@ -5,8 +5,8 @@ We will quickly run through how to set up the technologies and install the frame
 
 ## Cluster
 
-I used (Pegasus)[https://github.com/InsightDataScience/pegasus] to setup my technologies.
-After a succesful installation/initialization of Pegasus, run the following commands to setup your AWS cluster :
+I used [Pegasus](https://github.com/InsightDataScience/pegasus) to setup my technologies.
+After a successful installation/initialization of Pegasus, run the following commands to setup your AWS cluster :
 
     peg up <cluster-name>
 
@@ -24,10 +24,10 @@ We can now start installing technologies, we start with hadoop:
 
 When installing Spark, be sure to employ my custom version to use my added
 functionality (It is based on a 2.4.0 snapshot). You can either compile my
-version from scratch (Link)[https://github.com/bastihaase/spark] or, as long as
+version from scratch [Link](https://github.com/bastihaase/spark) or, as long as
 Insight keeps up my AWS cluster, use the link
 [https://s3-us-west-2.amazonaws.com/bastian-haase-insight-18b/spark-2.4.0-SNAPSHOT-bin-my-spark.tgz](https://s3-us-west-2.amazonaws.com/bastian-haase-insight-18b/spark-2.4.0-SNAPSHOT-bin-my-spark.tgz).
-If you compile it yourself, see here for instructions (Compile Spark)[https://spark.apache.org/docs/2.3.0/building-spark.html].
+If you compile it yourself, see here for instructions [Compile Spark](https://spark.apache.org/docs/2.3.0/building-spark.html).
 Note that I encountered errors with the compilation of SparkR due to a knitr error.
 Make sure you either do not include SparkR in your build or have
 knitr installed properly.
@@ -95,4 +95,4 @@ in all jobs that write to MySQL.
 ## Flask
 
 The installation of the flask app is just a straightforward cloning of all files in the app folder.
-I used (Gunicorn)[http://gunicorn.org/] to deploy the web app.
+I used [Gunicorn](http://gunicorn.org/) to deploy the web app.
