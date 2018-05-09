@@ -36,7 +36,10 @@ object SparkSQL_Performance_Join {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
       spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq())
+        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+          case (Some(x), Some(y)) => x.intersect(y)
+          case _ => Seq()
+        })
 
 
       // Creates a DataFrame from json file
@@ -46,6 +49,7 @@ object SparkSQL_Performance_Join {
       // Create two tempViews so we run SQL join statements on them
       meta_df.createOrReplaceTempView("m")
 
+      // Only join with subtabel of elements that have at least 4 element in buy_after_viewing
       val meta2 = meta_df.filter("SIZE(related.buy_after_viewing) > 3")
       meta2.createOrReplaceTempView("m2")
 
@@ -68,7 +72,7 @@ object SparkSQL_Performance_Join {
       val new_df = spark.sql(query)
 
 
-
+      // Save results to S3 in JSON format
       new_df.write.format("json").save("s3n://bastian-haase-insight-18b/results")
 
 
