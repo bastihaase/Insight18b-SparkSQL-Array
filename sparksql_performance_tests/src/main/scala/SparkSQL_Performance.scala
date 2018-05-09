@@ -54,7 +54,11 @@ object SparkSQL_Performance {
 
       var query :String = new String
 
-
+      if (args(1) == "UDF") {
+        query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
+      } else {
+        query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
+      }
 
       val new_df = spark.sql(query)
 
