@@ -18,7 +18,7 @@ object Streaming {
     *                               whether the intersection of arrays should be
     *                               computed via UDFs or via the internal solution
     *                               If args(0) = "UDF" => UDF solution
-    *                               If argso(0) = anything else => internal solution
+    *                               If args(0) = "internal" => internal solution
     *
     */
   def main(args: Array[String]): Unit = {
@@ -38,8 +38,13 @@ object Streaming {
 
     if (args.length >= 1) {
 
+      // Define UDF to compute intersection of arrays
       spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1.intersect(arr2) else Seq(""))
+        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+          case (Some(x), Some(y)) => x.intersect(y)
+          case _ => Seq()
+        })
+
 
 
       // If the fields we want to intersect do no exist, we want to store -1 with every asin entry
