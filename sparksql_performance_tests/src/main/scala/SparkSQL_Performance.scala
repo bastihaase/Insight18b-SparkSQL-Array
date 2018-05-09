@@ -38,7 +38,7 @@ object SparkSQL_Performance {
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
-      spark.udf.register("UDF_Intersection",
+      spark.udf.register("UDF_INTERSECTION",
         (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
           case (Some(x), Some(y)) => x.intersect(y)
           case _ => Seq()
