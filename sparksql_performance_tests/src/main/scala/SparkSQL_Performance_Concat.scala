@@ -4,7 +4,7 @@ import org.apache.spark.sql.SparkSession
 
 
 /** Defines a SparkSQL job that compares performance of
-  * using UDFs to compute intersections of arrays and
+  * using UDFs to compute concatenation of arrays and
   * using an internal implementation
   * Requires custom Spark distro available at https://github.com/bastihaase/spark
   */
@@ -35,8 +35,11 @@ object SparkSQL_Performance_Concat {
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
-      spark.udf.register("UDF_CONCAT",
-        (arr1: Seq[String], arr2: Seq[String]) => if (arr1 != null && arr2 != null) arr1 ++ arr2 else Seq())
+      spark.udf.register("UDF_INTERSECTION",
+        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+          case (Some(x), Some(y)) => x.intersect(y)
+          case _ => Seq()
+        })
 
 
       // Creates a DataFrame from json file
