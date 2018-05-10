@@ -13,7 +13,9 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion,
-  "mysql" % "mysql-connector-java" % "5.1.38"
+  "mysql" % "mysql-connector-java" % "5.1.38",
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test,
+  "junit" % "junit" % "4.12" % Test,
 )
 
 assemblyMergeStrategy in assembly := {
