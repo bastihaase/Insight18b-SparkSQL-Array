@@ -25,21 +25,30 @@ object SparkIntersect {
     // Creates a DataFrame from json file
     val meta_df = spark.read.json("hdfs://10.0.0.10:9000/input/" + args(0))
 
-    // Look at the schema of this DataFrame for debugging.
-    meta_df.printSchema()
+    // Apply transformations to dataframe
+    val transformed_df = transform_metadata(spark, meta_df)
 
+    // Save to MySQL database
+    save_to_mysql(transformed_df)
+
+  }
+
+  /** Helper function that applies the query to analyze the metadata  frome dataaframe
+    *
+    *  @param df: DataFrame   dataframe to be saved
+    *
+    *  @return :DataFrame     dataframe returned from query
+    */
+  def transform_metadata(ss: SparkSession, df: DataFrame): DataFrame = {
     // Create a tempView so we run SQL statements
-    meta_df.createOrReplaceTempView("meta_view")
+    df.createOrReplaceTempView("view")
 
     // Select the asin (product_id) and intersection of
     // what was bought and what was looked at
-    val query = "SELECT asin, SUBSTRING(description, 0, 20) description, price, SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM meta_view"
-    val new_df = spark.sql(query)
-
-    // Save to MySQL database
-    save_to_mysql(new_df)
-
+    val query = "SELECT asin, SUBSTRING(description, 0, 20) description, price, SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM view"
+    ss.sql(query)
   }
+
 
 
   /** Helper function that saves dataframe to MySQL database
@@ -62,7 +71,6 @@ object SparkIntersect {
 
     //write data from spark dataframe to mysql
     df.write.mode("append").jdbc(url, table, prop)
-
 
   }
 }
