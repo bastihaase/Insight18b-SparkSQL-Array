@@ -1,5 +1,7 @@
 package Intersection
 import org.apache.spark.sql.{DataFrame, SparkSession}
+
+import scala.util.{Failure, Success, Try}
 // For implicit conversions like converting RDDs to DataFrames
 
 
@@ -18,9 +20,6 @@ object SparkIntersect {
       .appName("Spark SQL to MySQL job")
       .getOrCreate()
 
-    // For implicit conversions
-
-
     // Creates a DataFrame from json file
     val meta_df = spark.read.json("hdfs://10.0.0.10:9000/input/" + args(0))
 
@@ -28,7 +27,11 @@ object SparkIntersect {
     val transformed_df = transform_metadata(spark, meta_df)
 
     // Save to MySQL database
-    save_to_mysql(transformed_df)
+    transformed_df match {
+      case Success(df) => save_to_mysql(df)
+      case Failure(e) => println(e)
+    }
+
 
   }
 
@@ -38,14 +41,14 @@ object SparkIntersect {
     *  @param ss: SparkSession current SparkSession
     *  @return :DataFrame      dataframe returned from query
     */
-  def transform_metadata(ss: SparkSession, df: DataFrame): DataFrame = {
+  def transform_metadata(ss: SparkSession, df: DataFrame): Try[DataFrame] = {
     // Create a tempView so we run SQL statements
     df.createOrReplaceTempView("view")
 
     // Select the asin (product_id) and intersection of
     // what was bought and what was looked at
     val query = "SELECT asin, SUBSTRING(description, 0, 20) description, price, SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM view"
-    ss.sql(query)
+    Try(ss.sql(query))
   }
 
 
