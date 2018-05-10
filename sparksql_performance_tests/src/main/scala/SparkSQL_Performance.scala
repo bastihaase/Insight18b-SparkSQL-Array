@@ -1,7 +1,6 @@
 package Performance_Tests
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.log4j.BasicConfigurator
-
 import scala.util.{Failure, Success, Try}
 
 
@@ -34,8 +33,6 @@ object SparkSQL_Performance {
     // Configure log4j to display log messages to console
     BasicConfigurator.configure()
 
-
-
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
@@ -49,8 +46,8 @@ object SparkSQL_Performance {
       val new_df = transform_metadata(spark, meta_df, args(1))
 
       new_df match {
-        case Success(df) => df.rdd.count()
-        case Failure(_) => println("Transformation failed!")
+        case Success(df) => df.rdd.count()  // Force evaluation
+        case Failure(e) => println(e)
       }
 
     } else
@@ -88,6 +85,7 @@ object SparkSQL_Performance {
   /** Registering UDF to compute intersection of array
     *
     *  @param ss : SparkSession          SparkSession where UDF will be registered at
+    *
     */
   def register_intersection_udf(ss: SparkSession): Unit = {
     ss.udf.register("UDF_INTERSECTION",
