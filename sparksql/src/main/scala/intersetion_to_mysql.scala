@@ -33,11 +33,11 @@ object SparkIntersect {
 
   }
 
-  /** Helper function that applies the query to analyze the metadata  frome dataaframe
+  /** Helper function that applies the query to analyze the metadata  from dataframe
     *
-    *  @param df: DataFrame   dataframe to be saved
-    *
-    *  @return :DataFrame     dataframe returned from query
+    *  @param df: DataFrame    dataframe to be saved
+    *  @param ss: SparkSession current SparkSession
+    *  @return :DataFrame      dataframe returned from query
     */
   def transform_metadata(ss: SparkSession, df: DataFrame): DataFrame = {
     // Create a tempView so we run SQL statements
