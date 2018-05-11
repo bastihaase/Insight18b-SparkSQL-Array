@@ -1,6 +1,8 @@
 package Performance_Tests
 import org.apache.log4j.BasicConfigurator
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
+
+import scala.util.{Failure, Success, Try}
 
 
 /** Defines a SparkSQL job that compares performance of
@@ -34,11 +36,7 @@ object SparkSQL_Performance_Group_By {
     if (args.length >= 2) {
 
       // Define UDF that intersects two sequences of strings in a nullsafe way
-      spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
-          case (Some(x), Some(y)) => x.intersect(y)
-          case _ => Seq()
-        })
+      register_intersection_udf(spark)
 
 
       // Creates a DataFrame from json file
@@ -51,20 +49,14 @@ object SparkSQL_Performance_Group_By {
       // Define the query based based on command line input
       // Either use UDF or the internal solution
 
-      var query :String = new String
 
 
-      if (args(1) == "UDF") {
-        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
-      } else {
-        query = "SELECT COUNT(asin) FROM meta_view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+      val new_df = transform_metadata(spark, meta_df, args(1))
 
+      new_df match {
+        case Success(f) => f.rdd.count()
+        case Failure(e) => println(e)
       }
-
-      val new_df = spark.sql(query)
-
-      // To force evaluation
-      new_df.rdd.count
 
     } else
       {
@@ -74,5 +66,42 @@ object SparkSQL_Performance_Group_By {
 
   }
 
+  /** Helper function that applies the query to analyze the metadata  from dataframe
+    *
+    *  @param ss: SparkSession  ambient spark session
+    *  @param df: DataFrame   dataframe to be saved
+    *  @param mode : String         "UDF" if user wants to use UDF intersection, else internal intersection is used
+    *
+    *  @return :DataFrame     dataframe returned from query
+    */
+  def transform_metadata(ss: SparkSession, df: DataFrame, mode: String): Try[DataFrame] = {
+
+    // Create a tempView so we run SQL statements
+    df.createOrReplaceTempView("view")
+
+    var query :String = new String
+
+    // Define query based on mode
+    if (mode == "UDF") {
+      query = "SELECT COUNT(asin) FROM view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+    } else {
+      query = "SELECT COUNT(asin) FROM view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+    }
+
+    Try(ss.sql(query))
+  }
+
+  /** Registering UDF to compute intersection of array
+    *
+    *  @param ss : SparkSession          SparkSession where UDF will be registered at
+    *
+    */
+  def register_intersection_udf(ss: SparkSession): Unit = {
+    ss.udf.register("UDF_INTERSECTION",
+      (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+        case (Some(x), Some(y)) => x.intersect(y)
+        case _ => Seq()
+      })
+  }
 
 }
