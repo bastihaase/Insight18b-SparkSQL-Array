@@ -15,7 +15,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
   "log4j" % "log4j" % "1.2.17",
-  "mysql" % "mysql-connector-java" % "5.1.38"
+  "mysql" % "mysql-connector-java" % "5.1.38",
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test,
+  "junit" % "junit" % "4.12" % Test
 )
 
 
