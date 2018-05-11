@@ -1,5 +1,6 @@
 package Kafka_SQL
 import com.google.gson.JsonDeserializer
+import org.apache.kafka.clients.consumer.{ConsumerRecord, ConsumerRecords}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.log4j.BasicConfigurator
 import org.apache.spark.sql.functions._
@@ -7,12 +8,18 @@ import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, LocationStrategies}
 import org.json4s.jackson.Json
 import org.apache.kafka.common.TopicPartition
-import scala.util.{Try, Success, Failure}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.streaming.dstream.InputDStream
+
+import scala.util.{Failure, Success, Try}
 
 object Streaming {
 
 
-  /** Function that tests if a dataframe has a certain field
+  /** Runs a SparkStreaming job listening to Kafka topic "meta"
+    * The Kafka topic streams in data; this job processes this data
+    * and saves the results to MySQL. It computes the intersection of
+    * two arrays present in the data.
     *
     *  @param args: Array[String]   command line input, first argument determines
     *                               whether the intersection of arrays should be
@@ -38,47 +45,18 @@ object Streaming {
 
     if (args.length >= 1) {
 
-      // Define UDF to compute intersection of arrays
-      spark.udf.register("UDF_INTERSECTION",
-        (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
-          case (Some(x), Some(y)) => x.intersect(y)
-          case _ => Seq()
-        })
-
+      register_intersection_udf(spark)
 
 
       // If the fields we want to intersect do no exist, we want to store -1 with every asin entry
-      val fields_do_not_exist_query = "SELECT -1 overlap, asin FROM table"
-
-      // If the fields buy_after_viewing and also_viewed exist, we want to compute their intersection
-      var fields_exist_query: String = new String
-      // args(0) determines, whether we choose our internal solution or UDFs
-      if (args(0) == "UDF") {
-        fields_exist_query = "SELECT asin, SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM table"
-      } else {
-        fields_exist_query = "SELECT asin, SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM table"
-
-      }
+      val (fields_exist_query, fields_do_not_exist_query)= get_queries(args(0))
 
 
-      // Starting Kafka connection, subscribing to topic meta
-      val preferredHosts = LocationStrategies.PreferConsistent
-      val topics = List("meta")
-      import org.apache.kafka.common.serialization.StringDeserializer
-      val kafkaParams = Map(
-        "bootstrap.servers" -> "localhost:9092",
-        "key.deserializer" -> classOf[StringDeserializer],
-        "value.deserializer" -> classOf[StringDeserializer],
-        "group.id" -> "spark-streaming-notes",
-        "auto.offset.reset" -> "earliest"
-      )
-
-      // starting Kafka Direct stream
+      // start new streaming context
       val ssc = new StreamingContext(spark.sparkContext, Seconds(1))
-      val dstream = KafkaUtils.createDirectStream[String, String](
-        ssc,
-        preferredHosts,
-        ConsumerStrategies.Subscribe[String, String](topics, kafkaParams))
+
+      // Populate it with a Kafka stream
+      val dstream = start_Kafka_stream(ssc)
 
 
       // main logic on how to process the input
@@ -86,13 +64,13 @@ object Streaming {
         rdd => {
           val dataFrame = spark.read.json(rdd.map(_.value)) //converts json to DF
 
-          dataFrame.createOrReplaceTempView("table")
+          // Application of transformation
+          val results = process_batch(spark, dataFrame, fields_exist_query, fields_do_not_exist_query)
 
-          // Choose the query based on whether all relevant fields exist
-          (df_has(dataFrame, "asin"), df_has(dataFrame, "related.also_viewed"), df_has(dataFrame, "related.buy_after_viewing")) match{
-            case (Success(_), Success(_), Success(_)) => save_to_mysql (spark.sql (fields_exist_query)
-            case (Success(_), _, _) => save_to_mysql(spark.sql(fields_do_not_exist_query))
-            case _ => println("No asin database!")
+          // If successful, save to MySQL
+          results match {
+            case Success(df) => save_to_mysql(df)
+            case Failure(e) => println(e)
           }
         })
 
@@ -117,6 +95,96 @@ object Streaming {
     */
   def df_has(df: DataFrame, field: String): Try[DataFrame] = Try(df.select(field))
 
+
+
+  /** Registering UDF to compute intersection of array
+    *
+    *  @param ss : SparkSession          SparkSession where UDF will be registered at
+    *
+    */
+  def register_intersection_udf(ss: SparkSession): Unit = {
+    ss.udf.register("UDF_INTERSECTION",
+      (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+        case (Some(x), Some(y)) => x.intersect(y)
+        case _ => Seq()
+      })
+  }
+
+
+  /** Main transformation for each batch. It computes the intersection of also_viewed and buy_after viewing
+    * if those fields exist
+    *
+    *  @param spark: SparkSession    ambient spark session
+    *  @param df: DataFrame          DataFrame containing current batch
+    *  @param fields_exist_query: String If the dataframe contains all fields, compute this query
+    *  @param fields_do_not_exist_query: String Alternative query if not all fields exist
+    *
+    *  @return Try[DataFrame]  In case of success, DataFrame containing the transformed DataFrame
+    */
+  def process_batch(spark: SparkSession, df: DataFrame, fields_exist_query: String, fields_do_not_exist_query: String): Try[DataFrame] = {
+
+    df.createOrReplaceTempView("table")
+
+    // See if all relevant fields are present in current batch
+    val also_viewed = df_has(df, "related.also_viewed")
+    val buy_after_viewing = df_has(df, "related.buy_after_viewing")
+
+
+    // Choose the query based on whether all relevant fields exist
+    (also_viewed, buy_after_viewing) match{
+    case (Success(_), Success(_)) => Try(spark.sql (fields_exist_query))
+    case _ => Try(spark.sql(fields_do_not_exist_query))
+    }
+  }
+
+
+  /** Get the queries depending on whether we want to use UDF or internal intersection
+    *
+    *  @param mode: String    "UDF" for UDF version, otherwise internal
+    *
+    *  @return (String, String)  queries to run: (dataframe has fields, dataframe does not have fields)
+    */
+  def get_queries(mode: String): (String, String) = {
+    // If the fields we want to intersect do no exist, we want to store -1 with every asin entry
+    val fields_do_not_exist_query = "SELECT -1 overlap, asin FROM table"
+
+    // If the fields buy_after_viewing and also_viewed exist, we want to compute their intersection
+    val fields_exist_query = mode match {
+      case "UDF" => "SELECT asin, SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM table"
+      case _ => "SELECT asin, SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed)) overlap FROM table"
+    }
+
+    (fields_exist_query, fields_do_not_exist_query)
+  }
+
+
+
+  /** Creating DStream that listens to Kafka topic meta
+    *
+    *  @param ssc: StreamingContext    dataframe which we want to test for a field
+    *
+    *  @return InputDStream[ConsumerRecord[String, String ] ]   DStream listening to Kafka topic meta
+    */
+  def start_Kafka_stream(ssc: StreamingContext): InputDStream[ConsumerRecord[String, String]] = {
+    // Setup Kafka configuration and subscribe to topic meta
+    val preferredHosts = LocationStrategies.PreferConsistent
+    val topics = List("meta")
+    import org.apache.kafka.common.serialization.StringDeserializer
+    val kafkaParams = Map(
+      "bootstrap.servers" -> "localhost:9092",
+      "key.deserializer" -> classOf[StringDeserializer],
+      "value.deserializer" -> classOf[StringDeserializer],
+      "group.id" -> "spark-streaming-notes",
+      "auto.offset.reset" -> "earliest"
+    )
+
+    // Create the Kafka stream
+    KafkaUtils.createDirectStream[String, String](
+      ssc,
+      preferredHosts,
+      ConsumerStrategies.Subscribe[String, String](topics, kafkaParams))
+
+  }
 
   /** Helper function that saves dataframe to MySQL database
     *
