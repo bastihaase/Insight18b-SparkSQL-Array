@@ -74,9 +74,9 @@ object SparkSQL_Performance {
 
     // Define query based on mode
     if (mode == "UDF") {
-      query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
+      query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM view"
     } else {
-      query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM meta_view"
+      query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM view"
     }
 
     Try(ss.sql(query))
