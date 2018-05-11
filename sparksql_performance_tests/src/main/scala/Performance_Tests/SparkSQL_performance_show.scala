@@ -76,9 +76,9 @@ object SparkSQL_Performance_Show {
 
     // Define query based on mode
     if (mode == "UDF") {
-      query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM view"
+      query = "SELECT UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed) overlap FROM view"
     } else {
-      query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) FROM view"
+      query = "SELECT ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed) overlap FROM view"
     }
 
     Try(ss.sql(query))

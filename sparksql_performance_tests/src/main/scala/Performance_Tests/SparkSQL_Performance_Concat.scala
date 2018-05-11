@@ -81,9 +81,9 @@ object SparkSQL_Performance_Concat {
 
     // Define query based on mode
     if (mode == "UDF") {
-      query = "SELECT UDF_CONCAT(related.buy_after_viewing, related.also_viewed) FROM view"
+      query = "SELECT UDF_CONCAT(related.buy_after_viewing, related.also_viewed) merge FROM view"
     } else {
-      query = "SELECT CONCAT(related.buy_after_viewing, related.also_viewed) FROM view"
+      query = "SELECT CONCAT(related.buy_after_viewing, related.also_viewed) merge FROM view"
     }
 
     Try(ss.sql(query))
@@ -96,7 +96,7 @@ object SparkSQL_Performance_Concat {
     */
   def register_concat_udf(ss: SparkSession): Unit = {
     ss.udf.register("UDF_CONCAT",
-      (arr1: Seq[String], arr2: Seq[String]) => (Option(arr1), Option(arr2)) match {
+      (arr1: Seq[String], arr2: Seq[String])  => (Option(arr1), Option(arr2)) match {
         case (Some(x), Some(y)) => x ++ y
         case _ => Seq()
       })
