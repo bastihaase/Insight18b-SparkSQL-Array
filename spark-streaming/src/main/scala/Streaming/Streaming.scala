@@ -1,15 +1,11 @@
-package Kafka_SQL
-import com.google.gson.JsonDeserializer
-import org.apache.kafka.clients.consumer.{ConsumerRecord, ConsumerRecords}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+package Streaming
+
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.log4j.BasicConfigurator
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.streaming._
-import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, LocationStrategies}
-import org.json4s.jackson.Json
-import org.apache.kafka.common.TopicPartition
-import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.InputDStream
+import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, LocationStrategies}
 
 import scala.util.{Failure, Success, Try}
 
@@ -38,7 +34,6 @@ object Streaming {
 
 
     // For implicit conversions like converting RDDs to DataFrames
-    import spark.implicits._
 
     // Configure log4j to display log messages to console
     BasicConfigurator.configure()
