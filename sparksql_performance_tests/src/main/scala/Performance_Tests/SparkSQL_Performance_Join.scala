@@ -75,15 +75,12 @@ object SparkSQL_Performance_Join {
     val df2 = df.filter("SIZE(related.buy_after_viewing) > 3")
     df2.createOrReplaceTempView("view2")
 
-    var query :String = new String
-
     // Define query based on mode
-    if (mode == "UDF") {
-      query = "SELECT view.asin FROM view LEFT JOIN view2 ON " +
+    val query = mode match {
+      case "UDF" => "SELECT view.asin FROM view LEFT JOIN view2 ON " +
         "UDF_INTERSECTION(view.related.also_viewed, view.related.buy_after_viewing) " +
         "== UDF_INTERSECTION(view2.related.also_viewed, view2.related.buy_after_viewing)"
-    } else {
-      query = "SELECT view.asin FROM view LEFT JOIN view2 ON " +
+      case _ => "SELECT view.asin FROM view LEFT JOIN view2 ON " +
         "ARRAY_INTERSECTION(view.related.also_viewed, view.related.buy_after_viewing) " +
         "== ARRAY_INTERSECTION(view2.related.also_viewed, view2.related.buy_after_viewing)"
     }

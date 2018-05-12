@@ -77,13 +77,10 @@ object SparkSQL_Performance_Concat {
     // Create a tempView so we run SQL statements
     df.createOrReplaceTempView("view")
 
-    var query :String = new String
-
     // Define query based on mode
-    if (mode == "UDF") {
-      query = "SELECT UDF_CONCAT(related.buy_after_viewing, related.also_viewed) merge FROM view"
-    } else {
-      query = "SELECT CONCAT(related.buy_after_viewing, related.also_viewed) merge FROM view"
+    val query = mode match {
+      case "UDF" => "SELECT UDF_CONCAT(related.buy_after_viewing, related.also_viewed) overlap FROM view"
+      case _ => "SELECT CONCAT(related.buy_after_viewing, related.also_viewed) overlap FROM view"
     }
 
     Try(ss.sql(query))

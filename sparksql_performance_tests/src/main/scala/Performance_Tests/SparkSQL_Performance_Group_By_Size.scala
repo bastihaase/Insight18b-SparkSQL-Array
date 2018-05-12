@@ -79,13 +79,11 @@ object SparkSQL_Performance_Group_By {
     // Create a tempView so we run SQL statements
     df.createOrReplaceTempView("view")
 
-    var query :String = new String
 
     // Define query based on mode
-    if (mode == "UDF") {
-      query = "SELECT COUNT(asin) FROM view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
-    } else {
-      query = "SELECT COUNT(asin) FROM view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+    val query = mode match {
+      case "UDF" => "SELECT COUNT(asin) FROM view GROUP BY SIZE(UDF_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
+      case _ => "SELECT COUNT(asin) FROM view GROUP BY SIZE(ARRAY_INTERSECTION(related.buy_after_viewing, related.also_viewed))"
     }
 
     Try(ss.sql(query))
