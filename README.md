@@ -115,12 +115,12 @@ The dataset was part of the work associated with the following papers:
 The main challenges encountered in this project were:
 
 - Understand how SparkSQL works internally:
--- SparkSQL uses a tree of expressions to parse SQL commands to Spark jobs
--- The catalyst component compiles SQL commands to JVM bytecode based on these rules
--- There is no detailed documentation for this, so I dove deep into the source code
--- Specifically, I chose specific SQL commands and analyzed how they were parsed
--- I had to make sure that the rules that will be applied to my expressions make sense for my use case. This made me choose the class BinaryExpression as a parent for my classes
--- I also had to write the codeGen functions that produce the JVM bytecode via quasi-quotes. Quasi-quotes are strings with a built in tree structure. They are used by catalyst to take the expression tree and the codeGen functionality of the expressions to produce cohesive code for the job
+  - SparkSQL uses a tree of expressions to parse SQL commands to Spark jobs
+  - The catalyst component compiles SQL commands to JVM bytecode based on these rules
+  - There is no detailed documentation for this, so I dove deep into the source code
+  - Specifically, I chose specific SQL commands and analyzed how they were parsed
+  - I had to make sure that the rules that will be applied to my expressions make sense for my use case. This made me choose the class BinaryExpression as a parent for my classes
+  - I also had to write the codeGen functions that produce the JVM bytecode via quasi-quotes. Quasi-quotes are strings with a built in tree structure. They are used by catalyst to take the expression tree and the codeGen functionality of the expressions to produce cohesive code for the job
 - Setting up a fully functioning data pipeline was a secondary engineering challenge
 
 
