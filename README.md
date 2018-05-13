@@ -2,7 +2,7 @@
 
 
 ## Description
-I implemented array modifications internally within SparkSQL and compared performance to
+I implemented common array modifications internally within SparkSQL and compared performance to
 user-defined-functions (UDFs).
 See here for my modified Spark Distro: [modified-Spark](https://github.com/bastihaase/spark).
 I also implemented a pipeline analyzing Amazon purchase data to test the pipeline.
@@ -14,7 +14,7 @@ See here for my slides presenting this project: [Slides](https://bit.ly/Haase_sl
 
 ## Internal modifications
 
-Currently, SparkSQL does not offer many features regarding
+Currently, SparkSQL lacks many features regarding
 the transformation of columns of arrays.
 I added internal functions in SparkSQL to compute
 intersections and exclusions of arrays.
@@ -28,12 +28,11 @@ the input arrays. Thorough unit testing is
 provided and specific methods for arrays of type int, byte and long are
 included to improve performance.
 
-Most of my additions are part of the catalyst module of SparkSQL.
+Most of my additions are within the catalyst module of SparkSQL.
 Essentially, catalyst decomposes SparkSQL statements as trees, optimizes
 the execution plan and ultimately produces JVM bytecode.
-So, I added expressions for array_intersection and array_exception that
-can be part of the trees and will generate efficient JVM code.
-
+Thus,  I added expressions for array_intersection and array_exception that
+can be part of these trees and will generate efficient JVM bytecode.
 
 My modifications are based on the branch of [Kiszk' Spark.](https://github.com/kiszk/spark).
 
@@ -49,7 +48,8 @@ implement the function internally, they can either dive deep into the source cod
 adds the desired functionality.
 
 More specifically, a company heavily invested in SparkSQL might face the issue
-that arrays functionality is very limited. There are (at least) three possible ways
+that arrays functionality is very limited. In this case, there are (at least)
+three possible ways
 to get around this
 
 - implement it internally
@@ -108,19 +108,19 @@ this dataset was used to create larger simulated files.
 The dataset was part of the work associated with the following papers:
 
 -  R. He, J. McAuley. Modeling the visual evolution of fashion trends with one-class collaborative filtering. WWW, 2016
--  J. McAuley, C. Targett, J. Shi, A. van den Hengel. Image-based recommendations on styles and substitutes. SIGIR, 2015
+-  J. McAuley, C. Targett, J. Shi, A. van den Hengel. Image-based recommendations on styles and substitutes. SUGAR, 2015
 
 ## Engineering Challenges
 
 The main challenges encountered in this project were:
 
-- Understand how SparkSQL works internally
-- SparkSQL uses a tree of expressions to parse SQL commands to Spark jobs
-- The catalyst component compiles SQL commands to JVM bytecode based on these rules
-- There is no detailed documentation for this, so I dove deep into the source code
-- Specifically, I chose specific SQL commands and analyzed how they were parsed
-- I had to make sure that the rules that will be applied to my expressions make sense for my use case
-- I also had to write the codeGen functions that produce the JVM bytecode via quasi-quotes
+- Understand how SparkSQL works internally:
+-- SparkSQL uses a tree of expressions to parse SQL commands to Spark jobs
+-- The catalyst component compiles SQL commands to JVM bytecode based on these rules
+-- There is no detailed documentation for this, so I dove deep into the source code
+-- Specifically, I chose specific SQL commands and analyzed how they were parsed
+-- I had to make sure that the rules that will be applied to my expressions make sense for my use case. This made me choose the class BinaryExpression as a parent for my classes
+-- I also had to write the codeGen functions that produce the JVM bytecode via quasi-quotes. Quasi-quotes are strings with a built in tree structure. They are used by catalyst to take the expression tree and the codeGen functionality of the expressions to produce cohesive code for the job
 - Setting up a fully functioning data pipeline was a secondary engineering challenge
 
 
@@ -142,6 +142,8 @@ The main challenges encountered in this project were:
 I have conducted more testing with more complicated queries. The results were similar to
 the isolated results. There were certain join queries were the UDF version needed more
 memory to not crash, but I have not investigated this in detail yet.
+
+I also tested performance in the streaming setup where the performance was again similar.
 
  ### Amazon Purchase data statistics
 
